@@ -1,4 +1,6 @@
 import tkinter as tk
+import threading
+import time
 from PIL import Image, ImageTk
 from tkinter import messagebox
 from pytube import YouTube
@@ -9,12 +11,13 @@ import os
 class Vista:
     def __init__(self, root):
         self.root = root
-        self.root.geometry("800x600")
+        self.root.geometry("800x630")
         self.root.resizable(False, False)
         self.root.title("YOUTUBE A MP3".center(60).upper())
         #self.current_folder = "/media/jose/90980D73980D58DC/PAPA/Música/Descargas de YouTube"
         self.current_folder = "/media/libardo/567E18C87E18A333/IDEAFIX/DescargasYoutube/youtube_download"
         self.calidad_audio = "256k"
+        self.proceso_activo = False
 
         # Fuentes
         self.title_font = ('Arial', 18, 'bold')
@@ -167,8 +170,16 @@ class Vista:
         self.icon_descargar = Image.open("image/descargar.png")  # Reemplaza "ruta/a/tu/imagen/icono.png" con la ruta de tu propia imagen
         self.icon_descargar = self.icon_descargar.resize((25, 25))  # Cambia el tamaño del icono según sea necesario
         self.descargar_icono = ImageTk.PhotoImage(self.icon_descargar)
-        self.boton_descargar = tk.Button(self.btn_frame, text="DESCARGAR", image=self.descargar_icono, compound=tk.LEFT, command=self.descargar_audio, bg="#3eff2a", activebackground="#90ff84")
+        self.boton_descargar = tk.Button(self.btn_frame, text="DESCARGAR", image=self.descargar_icono, compound=tk.LEFT, command=self.iniciar, bg="#3eff2a", activebackground="#90ff84")
         self.boton_descargar.pack()
+
+        # Frame para la barra de progreso
+        self.progreso_frame = tk.Frame(self.frame)
+        self.progreso_frame.pack(pady=30)
+
+        # Crear el Label para la barra de progreso
+        self.label_carga = tk.Label(self.progreso_frame, text="")
+        self.label_carga.pack()
 
     def obtener_url(self):
         return self.url.get()
@@ -215,6 +226,7 @@ class Vista:
         self.titulo_metadata.delete(0, tk.END)
         self.artista_metadata.delete(0, tk.END)
         self.genero_metadata.delete(0, tk.END)
+        self.url.focus_set()
 
     def validar_titulo(self):
         titulo = self.eliminar_punto_final(self.titulo_metadata.get())
@@ -270,16 +282,22 @@ class Vista:
                             sec_final = self.sec_slider_final.get()
                             start_time = self.tiempo_inicial_func(min_inicio, sec_inicio)
                             end_time = self.tiempo_final_func(min_final, sec_final)
-                            ffmpeg.input(archivo_mp4_ruta).output(
-                                archivo_mp3_ruta, 
-                                audio_bitrate=self.calidad_audio, 
-                                ss=start_time, 
-                                to=end_time,
-                                **{ 'metadata:g:0':f"title={video_title}", 
-                                    'metadata:g:1':f"artist={video_artista}", 
-                                    'metadata:g:2':f"genre={video_genero}", 
-                                    }
-                                ).run()
+                            tiempo_inicio = (min_inicio * 60) + sec_inicio
+                            tiempo_final = (min_final * 60) + sec_final
+                            if tiempo_inicio < tiempo_final:
+                                ffmpeg.input(archivo_mp4_ruta).output(
+                                    archivo_mp3_ruta, 
+                                    audio_bitrate=self.calidad_audio, 
+                                    ss=start_time, 
+                                    to=end_time,
+                                    **{ 'metadata:g:0':f"title={video_title}", 
+                                        'metadata:g:1':f"artist={video_artista}", 
+                                        'metadata:g:2':f"genre={video_genero}", 
+                                        }
+                                    ).run()
+                            else:
+                                os.remove(archivo_mp4_ruta)
+                                return f"El tiempo de inicio debe ser menor al tiempo final"
                         elif self.controls_tiempo_inicial.get():
                             min_inicio = self.min_slider_inicio.get()
                             sec_inicio = self.sec_slider_inicio.get()
@@ -319,7 +337,8 @@ class Vista:
                         os.remove(archivo_mp4_ruta)
                         self.borrar_url()
                         self.borrar_metadatos()
-                        self.mostrar_mensaje(f"DESCARGA EXITOSA: \n{video_title}") 
+                        return f"DESCARGA EXITOSA: \n{video_title}"
+                        # self.mostrar_mensaje(f"DESCARGA EXITOSA: \n{video_title}")
                     else:
                         self.mostrar_mensaje("No se encontró un archivo de audio disponible.")
                 except Exception as e:
@@ -329,9 +348,41 @@ class Vista:
         else:
             self.mostrar_mensaje("La URL de YouTube no es válida.")
 
+    # Función para actualizar la barra de progreso
+    def actualizar_barra_progreso(self):
+        while self.proceso_activo:
+            for i in range(1, 11):
+                if not self.proceso_activo:
+                    break
+                self.label_carga.config(text=f"{'*' * i}", font=self.url_font)
+                time.sleep(0.5)
+            if not self.proceso_activo:
+                break
+            self.label_carga.config(text="")
+            time.sleep(0.5)
+
+    # Función para iniciar el proceso
+    def iniciar(self):
+        self.proceso_activo = True
+        self.boton_descargar.config(state=tk.DISABLED)
+        thread_proceso = threading.Thread(target=self.ejecutar_proceso)
+        thread_progreso = threading.Thread(target=self.actualizar_barra_progreso)
+
+        thread_progreso.start()
+        thread_proceso.start()
+
+    def ejecutar_proceso(self):
+        resultado = self.descargar_audio()
+        self.proceso_activo = False
+        self.boton_descargar.config(state=tk.NORMAL)
+        self.label_carga.config(text="")
+        if resultado:
+            messagebox.showinfo("Proceso Finalizado", resultado)
+
 def main():
     root = tk.Tk()
     vista = Vista(root)
+
     # Función para ejecutar las funciones después de un breve tiempo
     def actualizar_control_deslizante():
         vista.habilitar_tiempo_inicial()
