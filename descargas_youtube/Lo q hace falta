@@ -1,0 +1,15 @@
+Metadatos:
+*    Titulo de la cancion
+*    Artista
+*    Genero
+
+Validaciones:
+*   Que el campo de titulo de la cancion no se vaya vacio
+    Que si el tiempo final es menor al tiempo inicial lance un mensaje de alerta
+    Si ya hay una cancion con el mismo titulo q agregue un consecutivo o pregunte si desea reemplazar
+
+probar con la cancion:
+yo no le vendo mi fundo:
+https://www.youtube.com/watch?v=yLsfxsovaHY&list=RDY7U1oK3o7YE&index=2&ab_channel=CholoValderrama-Topic
+
+Probar con el ejecutable hecho con Pyinstaller todo lo anterior
