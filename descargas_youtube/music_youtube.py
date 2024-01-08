@@ -1,3 +1,4 @@
+import sys
 import tkinter as tk
 import threading
 import time
@@ -16,7 +17,7 @@ class Vista:
         
         # Cargar la imagen de fondo
         self.ruta_imagen = "image/background.png"
-        self.imagen_fondo = Image.open(self.ruta_imagen)
+        self.imagen_fondo = Image.open(self.resource_path(self.ruta_imagen))
         self.imagen_fondo = ImageTk.PhotoImage(self.imagen_fondo)
         # Cargar la imagen de fondo transparente
         # self.ruta_imagen_transparente = "image/fondo_transparente.png"
@@ -67,14 +68,14 @@ class Vista:
         self.url_btns_frame.pack(pady=(60, 0))
 
         # Cargar y redimensionar la imagen del icono - Boton Pegar
-        self.icon_pegar = Image.open("image/pegar.png")
+        self.icon_pegar = Image.open(self.resource_path("image/pegar.png"))
         self.icon_pegar = self.icon_pegar.resize((25, 25))  # Cambia el tamaño del icono según sea necesario
         self.pegar_icono = ImageTk.PhotoImage(self.icon_pegar)
         self.boton_pegar = tk.Button(self.url_btns_frame, image=self.pegar_icono, command=self.pegar_texto, bg="#4484ff", activebackground="#98bbff")
         self.boton_pegar.pack(side=tk.LEFT, padx=(0, 10))
         
         # Cargar y redimensionar la imagen del icono - Boton Borrar
-        self.icon_borrar = Image.open("image/eliminar.png")  # Reemplaza "ruta/a/tu/imagen/icono.png" con la ruta de tu propia imagen
+        self.icon_borrar = Image.open(self.resource_path("image/eliminar.png"))  # Reemplaza "ruta/a/tu/imagen/icono.png" con la ruta de tu propia imagen
         self.icon_borrar = self.icon_borrar.resize((25, 25))  # Cambia el tamaño del icono según sea necesario
         self.borrar_icono = ImageTk.PhotoImage(self.icon_borrar)
         self.boton_borrar = tk.Button(self.url_btns_frame, image=self.borrar_icono, command=self.borrar_url, bg="#f94949", activebackground="#ff9898")
@@ -194,7 +195,7 @@ class Vista:
         self.btn_frame.pack()
 
         # Cargar y redimensionar la imagen del icono - Boton Descargar
-        self.icon_descargar = Image.open("image/descargar.png")  # Reemplaza "ruta/a/tu/imagen/icono.png" con la ruta de tu propia imagen
+        self.icon_descargar = Image.open(self.resource_path("image/descargar.png"))  # Reemplaza "ruta/a/tu/imagen/icono.png" con la ruta de tu propia imagen
         self.icon_descargar = self.icon_descargar.resize((25, 25))  # Cambia el tamaño del icono según sea necesario
         self.descargar_icono = ImageTk.PhotoImage(self.icon_descargar)
         self.boton_descargar = tk.Button(self.btn_frame, text="DESCARGAR", image=self.descargar_icono, compound=tk.LEFT, command=self.iniciar, font=self.label_metadatos_font, bg="#3eff2a", activebackground="#90ff84")
@@ -398,6 +399,11 @@ class Vista:
         self.label_carga.config(text="")
         if resultado:
             messagebox.showinfo("Proceso Finalizado", resultado)
+
+    def resource_path(self,relative_path):
+        """ Get absolute path to resource, works for dev and for PyInstaller """
+        base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
+        return os.path.join(base_path, relative_path)
 
 def main():
     root = tk.Tk()
