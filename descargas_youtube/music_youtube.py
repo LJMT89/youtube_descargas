@@ -11,11 +11,26 @@ import os
 class Vista:
     def __init__(self, root):
         self.root = root
-        self.root.geometry("800x630")
+        self.root.geometry("800x600")
         self.root.resizable(False, False)
+        
+        # Cargar la imagen de fondo
+        self.ruta_imagen = "image/background.png"
+        self.imagen_fondo = Image.open(self.ruta_imagen)
+        self.imagen_fondo = ImageTk.PhotoImage(self.imagen_fondo)
+        # Cargar la imagen de fondo transparente
+        # self.ruta_imagen_transparente = "image/fondo_transparente.png"
+        # self.imagen_transparente = Image.open(self.ruta_imagen_transparente)
+        # self.imagen_transparente = ImageTk.PhotoImage(self.imagen_transparente)
+        
+        # Crear un Label y configurarlo para mostrar la imagen de fondo
+        # self.label_fondo = tk.Label(self.root, image=self.imagen)
+        # self.label_fondo.place(x=0, y=0, relwidth=1, relheight=1)
+        
+        # Título de la ventana principal
         self.root.title("YOUTUBE A MP3".center(60).upper())
-        #self.current_folder = "/media/jose/90980D73980D58DC/PAPA/Música/Descargas de YouTube"
-        self.current_folder = "/media/libardo/567E18C87E18A333/IDEAFIX/DescargasYoutube/youtube_download"
+        self.current_folder = "/media/jose/90980D73980D58DC/PAPA/Música/Descargas de YouTube"
+        #self.current_folder = "/media/libardo/567E18C87E18A333/IDEAFIX/DescargasYoutube/youtube_download"
         self.calidad_audio = "256k"
         self.proceso_activo = False
 
@@ -28,7 +43,11 @@ class Vista:
 
         # Frame principal
         self.frame = tk.Frame(self.root)
-        self.frame.pack()
+        self.frame.pack(fill=tk.BOTH, expand=True)
+
+        # Crear un Label y configurarlo para mostrar la imagen de fondo
+        self.label_fondo_ppal = tk.Label(self.frame, image=self.imagen_fondo)
+        self.label_fondo_ppal.place(x=0, y=0, relwidth=1, relheight=1)
 
         # Barra de menú
         self.barra_menu = tk.Menu(self.root)
@@ -40,26 +59,26 @@ class Vista:
         self.root.config(menu=self.barra_menu)
 
         # Label de ingresar la url de youtube
-        self.label_title = tk.Label(self.frame, text="INGRESE AQUÍ LA URL DE YOUTUBE", font=self.title_font)
-        self.label_title.pack(pady=15)
+        # self.label_title = tk.Label(self.frame, text="INGRESE AQUÍ LA URL DE YOUTUBE", font=self.title_font)
+        # self.label_title.pack(pady=15)
 
         # Frame para la URL y los botones Abrir Carpeta Contenedora y Eliminar Texto
-        self.url_btns_frame = tk.Frame(self.frame)
-        self.url_btns_frame.pack()
+        self.url_btns_frame = tk.Frame(self.frame, background='white')
+        self.url_btns_frame.pack(pady=(60, 0))
 
         # Cargar y redimensionar la imagen del icono - Boton Pegar
         self.icon_pegar = Image.open("image/pegar.png")
         self.icon_pegar = self.icon_pegar.resize((25, 25))  # Cambia el tamaño del icono según sea necesario
         self.pegar_icono = ImageTk.PhotoImage(self.icon_pegar)
         self.boton_pegar = tk.Button(self.url_btns_frame, image=self.pegar_icono, command=self.pegar_texto, bg="#4484ff", activebackground="#98bbff")
-        self.boton_pegar.pack(side=tk.LEFT, padx=10)
+        self.boton_pegar.pack(side=tk.LEFT, padx=(0, 10))
         
         # Cargar y redimensionar la imagen del icono - Boton Borrar
         self.icon_borrar = Image.open("image/eliminar.png")  # Reemplaza "ruta/a/tu/imagen/icono.png" con la ruta de tu propia imagen
         self.icon_borrar = self.icon_borrar.resize((25, 25))  # Cambia el tamaño del icono según sea necesario
         self.borrar_icono = ImageTk.PhotoImage(self.icon_borrar)
         self.boton_borrar = tk.Button(self.url_btns_frame, image=self.borrar_icono, command=self.borrar_url, bg="#f94949", activebackground="#ff9898")
-        self.boton_borrar.pack(side=tk.RIGHT, padx=10)
+        self.boton_borrar.pack(side=tk.RIGHT, padx=(10, 0))
 
         # TextField para el ingreso de la URL de YouTube
         self.url = tk.Entry(self.url_btns_frame, width=50, font=self.url_font)
@@ -67,83 +86,91 @@ class Vista:
         self.url.focus_set()
 
         # Frame para los Frame: Tiempo Inicial - Tiempo Final
-        self.lbl_time_frame = tk.Frame(self.frame)
-        self.lbl_time_frame.pack(pady=15)
+        self.lbl_time_frame = tk.Frame(self.frame, background='white')
+        self.lbl_time_frame.pack(pady=(15, 0))
 
         # Frame para los label de Tiempo Inicial y Checkbutton Tiempo Inicial
         self.lbl_time_inicial_frame = tk.Frame(self.lbl_time_frame)
-        self.lbl_time_inicial_frame.pack(side=tk.LEFT, padx=90)
+        self.lbl_time_inicial_frame.pack(side=tk.LEFT, padx=90, pady=15)
 
         # Checkbutton para habilitar/deshabilitar Tiempo Inicial
         self.controls_tiempo_inicial = tk.BooleanVar()
         self.controls_tiempo_inicial.set(False)  # Por defecto, los controles están deshabilitados
-        self.tiempo_inicial_checkbox = tk.Checkbutton(self.lbl_time_inicial_frame, variable=self.controls_tiempo_inicial, command=self.habilitar_tiempo_inicial)
+        self.tiempo_inicial_checkbox = tk.Checkbutton(self.lbl_time_inicial_frame, variable=self.controls_tiempo_inicial, command=self.habilitar_tiempo_inicial, background='orange', activebackground='#ffc38b')
         self.tiempo_inicial_checkbox.pack(side=tk.LEFT)
 
         # Label para Tiempo Inicial
-        self.time_label_inicial = tk.Label(self.lbl_time_inicial_frame, text="Tiempo Inicial", font=self.titulos_tiempos_font)
+        self.time_label_inicial = tk.Label(self.lbl_time_inicial_frame, text="Tiempo Inicial", font=self.titulos_tiempos_font, background='white')
         self.time_label_inicial.pack(side=tk.LEFT)
 
         # Frame para los label de Tiempo Final y Checkbutton Tiempo Final
         self.lbl_time_final_frame = tk.Frame(self.lbl_time_frame)
-        self.lbl_time_final_frame.pack(side=tk.LEFT, padx=96)
+        self.lbl_time_final_frame.pack(side=tk.LEFT, padx=96, pady=15)
 
         # Checkbutton para habilitar/deshabilitar Tiempo Final
         self.controls_tiempo_final = tk.BooleanVar()
         self.controls_tiempo_final.set(False)  # Por defecto, los controles están deshabilitados
-        self.tiempo_final_checkbox = tk.Checkbutton(self.lbl_time_final_frame, variable=self.controls_tiempo_final, command=self.habilitar_tiempo_final)
+        self.tiempo_final_checkbox = tk.Checkbutton(self.lbl_time_final_frame, variable=self.controls_tiempo_final, command=self.habilitar_tiempo_final, background='orange', activebackground='#ffc38b')
         self.tiempo_final_checkbox.pack(side=tk.LEFT)
 
         # Label para Tiempo Final
-        self.time_label_final = tk.Label(self.lbl_time_final_frame, text="Tiempo Final", font=self.titulos_tiempos_font)
+        self.time_label_final = tk.Label(self.lbl_time_final_frame, text="Tiempo Final", font=self.titulos_tiempos_font, background='white')
         self.time_label_final.pack(side=tk.LEFT)
 
         # Frame para: Frame de Tiempo Inicial - Frame de Tiempo Final
-        self.time_frame = tk.Frame(self.frame)
-        self.time_frame.pack()
+        self.time_frame = tk.Frame(self.frame, background='white')
+        self.time_frame.pack(pady=(0, 9))
 
         # Frame de Tiempo Inicial
-        self.time_frame_inicio = tk.Frame(self.time_frame)
+        self.time_frame_inicio = tk.Frame(self.time_frame, background='white')
         self.time_frame_inicio.pack(side=tk.LEFT, padx=60)
 
         # Control deslizante para minutos INICIO (de 0 a 15)
-        self.min_slider_inicio = tk.Scale(self.time_frame_inicio, from_=0, to=15, orient="horizontal", label="Minutos", length=200, tickinterval=5)
+        self.min_slider_inicio = tk.Scale(self.time_frame_inicio, from_=0, to=15, orient="horizontal", label="Minutos", length=200, tickinterval=5, background='white')
         self.min_slider_inicio.pack()
 
         # Control deslizante para segundos INICIO (de 0 a 59)
-        self.sec_slider_inicio = tk.Scale(self.time_frame_inicio, from_=0, to=59, orient="horizontal", label="Segundos", length=200, tickinterval=10)
+        self.sec_slider_inicio = tk.Scale(self.time_frame_inicio, from_=0, to=59, orient="horizontal", label="Segundos", length=200, tickinterval=10, background='white')
         self.sec_slider_inicio.pack()
 
         # Frame de Tiempo Final
-        self.time_frame_final = tk.Frame(self.time_frame)
-        self.time_frame_final.pack(side=tk.LEFT, padx=60)
+        self.time_frame_final = tk.Frame(self.time_frame, background='white')
+        self.time_frame_final.pack(side=tk.LEFT, padx=54)
 
         # Control deslizante para minutos FINAL (de 0 a 15)
-        self.min_slider_final = tk.Scale(self.time_frame_final, from_=0, to=15, orient="horizontal", label="Minutos", length=200, tickinterval=5)
+        self.min_slider_final = tk.Scale(self.time_frame_final, from_=0, to=15, orient="horizontal", label="Minutos", length=200, tickinterval=5, background='white')
         self.min_slider_final.pack()
 
         # Control deslizante para segundos FINAL (de 0 a 59)
-        self.sec_slider_final = tk.Scale(self.time_frame_final, from_=0, to=59, orient="horizontal", label="Segundos", length=200, tickinterval=10)
+        self.sec_slider_final = tk.Scale(self.time_frame_final, from_=0, to=59, orient="horizontal", label="Segundos", length=200, tickinterval=10, background='white')
         self.sec_slider_final.pack()
 
+        # Frame para la barra de progreso
+        self.progreso_frame = tk.Frame(self.frame)
+        self.progreso_frame.pack()
+
+        # Crear el Label para la barra de progreso
+        self.label_carga = tk.Label(self.progreso_frame, text="", font=self.url_font, background='white')
+        self.label_carga.pack()
+
         # Frame para la metadata de titulo
-        self.titulo_metadata_frame = tk.Frame(self.frame)
-        self.titulo_metadata_frame.pack()
+        self.titulo_metadata_frame = tk.Frame(self.frame, background='white')
+        self.titulo_metadata_frame.pack(pady=(0, 30))
 
         # Label para metadata titulo
-        self.titulo_lbl_metadata = tk.Label(self.titulo_metadata_frame, text="Título: ", font=self.label_metadatos_font)
+        self.titulo_lbl_metadata = tk.Label(self.titulo_metadata_frame, text="Título:   ", font=self.label_metadatos_font, background='white')
         self.titulo_lbl_metadata.pack(side=tk.LEFT)
 
         # TextField para la metadata del titulo
         self.titulo_metadata = tk.Entry(self.titulo_metadata_frame, width=30, font=self.textfield_metadatos_font)
-        self.titulo_metadata.pack(pady=30)
+        self.titulo_metadata.pack()
 
         # Frame para la metadata de artista
-        self.artista_metadata_frame = tk.Frame(self.frame)
+        self.artista_metadata_frame = tk.Frame(self.frame, background='white')
         self.artista_metadata_frame.pack()
 
         # Label para metadata artista
-        self.artista_lbl_metadata = tk.Label(self.artista_metadata_frame, text="Artista: ", font=self.label_metadatos_font)
+        self.artista_lbl_metadata = tk.Label(self.artista_metadata_frame, text="Artista:  ", font=self.label_metadatos_font, background='white')
         self.artista_lbl_metadata.pack(side=tk.LEFT)
 
         # TextField para la metadata del artista
@@ -151,16 +178,16 @@ class Vista:
         self.artista_metadata.pack()
 
         # Frame para la metadata de genero
-        self.genero_metadata_frame = tk.Frame(self.frame)
-        self.genero_metadata_frame.pack()
+        self.genero_metadata_frame = tk.Frame(self.frame, background='white')
+        self.genero_metadata_frame.pack(pady=30)
 
         # Label para metadata genero
-        self.genero_lbl_metadata = tk.Label(self.genero_metadata_frame, text="Género: ", font=self.label_metadatos_font)
+        self.genero_lbl_metadata = tk.Label(self.genero_metadata_frame, text="Género: ", font=self.label_metadatos_font, background='white')
         self.genero_lbl_metadata.pack(side=tk.LEFT)
 
         # TextField para la metadata del genero
         self.genero_metadata = tk.Entry(self.genero_metadata_frame, width=30, font=self.textfield_metadatos_font)
-        self.genero_metadata.pack(pady=30)
+        self.genero_metadata.pack()
 
         # Frame para el boton DESCARGAR
         self.btn_frame = tk.Frame(self.frame)
@@ -170,16 +197,8 @@ class Vista:
         self.icon_descargar = Image.open("image/descargar.png")  # Reemplaza "ruta/a/tu/imagen/icono.png" con la ruta de tu propia imagen
         self.icon_descargar = self.icon_descargar.resize((25, 25))  # Cambia el tamaño del icono según sea necesario
         self.descargar_icono = ImageTk.PhotoImage(self.icon_descargar)
-        self.boton_descargar = tk.Button(self.btn_frame, text="DESCARGAR", image=self.descargar_icono, compound=tk.LEFT, command=self.iniciar, bg="#3eff2a", activebackground="#90ff84")
+        self.boton_descargar = tk.Button(self.btn_frame, text="DESCARGAR", image=self.descargar_icono, compound=tk.LEFT, command=self.iniciar, font=self.label_metadatos_font, bg="#3eff2a", activebackground="#90ff84")
         self.boton_descargar.pack()
-
-        # Frame para la barra de progreso
-        self.progreso_frame = tk.Frame(self.frame)
-        self.progreso_frame.pack(pady=30)
-
-        # Crear el Label para la barra de progreso
-        self.label_carga = tk.Label(self.progreso_frame, text="")
-        self.label_carga.pack()
 
     def obtener_url(self):
         return self.url.get()
@@ -350,6 +369,7 @@ class Vista:
 
     # Función para actualizar la barra de progreso
     def actualizar_barra_progreso(self):
+        time.sleep(0.5)
         while self.proceso_activo:
             for i in range(1, 11):
                 if not self.proceso_activo:
