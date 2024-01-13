@@ -1,8 +1,6 @@
-import sys
 import tkinter as tk
 import threading
 import time
-from PIL import Image, ImageTk
 from tkinter import messagebox
 from pytube import YouTube
 import ffmpeg
@@ -14,19 +12,6 @@ class Vista:
         self.root = root
         self.root.geometry("800x600")
         self.root.resizable(False, False)
-        
-        # Cargar la imagen de fondo
-        self.ruta_imagen = "image/background.png"
-        self.imagen_fondo = Image.open(self.resource_path(self.ruta_imagen))
-        self.imagen_fondo = ImageTk.PhotoImage(self.imagen_fondo)
-        # Cargar la imagen de fondo transparente
-        # self.ruta_imagen_transparente = "image/fondo_transparente.png"
-        # self.imagen_transparente = Image.open(self.ruta_imagen_transparente)
-        # self.imagen_transparente = ImageTk.PhotoImage(self.imagen_transparente)
-        
-        # Crear un Label y configurarlo para mostrar la imagen de fondo
-        # self.label_fondo = tk.Label(self.root, image=self.imagen)
-        # self.label_fondo.place(x=0, y=0, relwidth=1, relheight=1)
         
         # Título de la ventana principal
         self.root.title("YOUTUBE A MP3".center(60).upper())
@@ -43,12 +28,8 @@ class Vista:
         self.textfield_metadatos_font = ('Arial', 12)
 
         # Frame principal
-        self.frame = tk.Frame(self.root)
+        self.frame = tk.Frame(self.root, background='white')
         self.frame.pack(fill=tk.BOTH, expand=True)
-
-        # Crear un Label y configurarlo para mostrar la imagen de fondo
-        self.label_fondo_ppal = tk.Label(self.frame, image=self.imagen_fondo)
-        self.label_fondo_ppal.place(x=0, y=0, relwidth=1, relheight=1)
 
         # Barra de menú
         self.barra_menu = tk.Menu(self.root)
@@ -60,25 +41,19 @@ class Vista:
         self.root.config(menu=self.barra_menu)
 
         # Label de ingresar la url de youtube
-        # self.label_title = tk.Label(self.frame, text="INGRESE AQUÍ LA URL DE YOUTUBE", font=self.title_font)
-        # self.label_title.pack(pady=15)
+        self.label_title = tk.Label(self.frame, text="INGRESE AQUÍ LA URL DE YOUTUBE", font=self.title_font, background='white')
+        self.label_title.pack(pady=15)
 
         # Frame para la URL y los botones Abrir Carpeta Contenedora y Eliminar Texto
         self.url_btns_frame = tk.Frame(self.frame, background='white')
-        self.url_btns_frame.pack(pady=(60, 0))
+        self.url_btns_frame.pack()
 
         # Cargar y redimensionar la imagen del icono - Boton Pegar
-        self.icon_pegar = Image.open(self.resource_path("image/pegar.png"))
-        self.icon_pegar = self.icon_pegar.resize((25, 25))  # Cambia el tamaño del icono según sea necesario
-        self.pegar_icono = ImageTk.PhotoImage(self.icon_pegar)
-        self.boton_pegar = tk.Button(self.url_btns_frame, image=self.pegar_icono, command=self.pegar_texto, bg="#4484ff", activebackground="#98bbff")
+        self.boton_pegar = tk.Button(self.url_btns_frame, text='Pegar', command=self.pegar_texto, bg="#4484ff", activebackground="#98bbff")
         self.boton_pegar.pack(side=tk.LEFT, padx=(0, 10))
         
         # Cargar y redimensionar la imagen del icono - Boton Borrar
-        self.icon_borrar = Image.open(self.resource_path("image/eliminar.png"))  # Reemplaza "ruta/a/tu/imagen/icono.png" con la ruta de tu propia imagen
-        self.icon_borrar = self.icon_borrar.resize((25, 25))  # Cambia el tamaño del icono según sea necesario
-        self.borrar_icono = ImageTk.PhotoImage(self.icon_borrar)
-        self.boton_borrar = tk.Button(self.url_btns_frame, image=self.borrar_icono, command=self.borrar_url, bg="#f94949", activebackground="#ff9898")
+        self.boton_borrar = tk.Button(self.url_btns_frame, text='Borrar', command=self.borrar_url, bg="#f94949", activebackground="#ff9898")
         self.boton_borrar.pack(side=tk.RIGHT, padx=(10, 0))
 
         # TextField para el ingreso de la URL de YouTube
@@ -195,10 +170,7 @@ class Vista:
         self.btn_frame.pack()
 
         # Cargar y redimensionar la imagen del icono - Boton Descargar
-        self.icon_descargar = Image.open(self.resource_path("image/descargar.png"))  # Reemplaza "ruta/a/tu/imagen/icono.png" con la ruta de tu propia imagen
-        self.icon_descargar = self.icon_descargar.resize((25, 25))  # Cambia el tamaño del icono según sea necesario
-        self.descargar_icono = ImageTk.PhotoImage(self.icon_descargar)
-        self.boton_descargar = tk.Button(self.btn_frame, text="DESCARGAR", image=self.descargar_icono, compound=tk.LEFT, command=self.iniciar, font=self.label_metadatos_font, bg="#3eff2a", activebackground="#90ff84")
+        self.boton_descargar = tk.Button(self.btn_frame, text="DESCARGAR", command=self.iniciar, font=self.label_metadatos_font, bg="#3eff2a", activebackground="#90ff84")
         self.boton_descargar.pack()
 
     def obtener_url(self):
@@ -399,11 +371,6 @@ class Vista:
         self.label_carga.config(text="")
         if resultado:
             messagebox.showinfo("Proceso Finalizado", resultado)
-
-    def resource_path(self,relative_path):
-        """ Get absolute path to resource, works for dev and for PyInstaller """
-        base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
-        return os.path.join(base_path, relative_path)
 
 def main():
     root = tk.Tk()
