@@ -772,7 +772,7 @@ QPushButton:disabled {
       <normaloff>../image/descargar.png</normaloff>../image/descargar.png</iconset>
     </property>
    </widget>
-   <widget class="QLabel" name="label">
+   <widget class="QLabel" name="lbl_progreso">
     <property name="geometry">
      <rect>
       <x>300</x>
@@ -790,7 +790,7 @@ QPushButton:disabled {
      <string notr="true">color: rgb(255, 255, 255);</string>
     </property>
     <property name="text">
-     <string>**********</string>
+     <string/>
     </property>
     <property name="alignment">
      <set>Qt::AlignCenter</set>

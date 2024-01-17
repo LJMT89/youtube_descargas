@@ -2,7 +2,7 @@ import sys, os
 
 from PyQt5 import uic
 from PyQt5.QtWidgets import QApplication, QDesktopWidget, QMainWindow
-from PyQt5.QtCore import QThread, pyqtSignal, Qt
+from PyQt5.QtCore import Qt
 
 from src.descargar_youtube import Descargar_Youtube_UI
 from src.conversor_mp3 import Conversor_mp3_UI
