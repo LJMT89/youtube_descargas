@@ -1,7 +1,7 @@
 import sys, os
 from PyQt5 import uic
 from PyQt5.QtWidgets import QMainWindow, QMessageBox, QApplication
-from PyQt5.QtCore import Qt, QThread, pyqtSignal, QObject
+from PyQt5.QtCore import Qt, QThread, pyqtSignal, QObject, QTimer
 from pytube import YouTube
 import ffmpeg
 import time
@@ -34,8 +34,8 @@ class WorkerProgress(QObject):
         self.stopped = True
 
 class WorkerDownload(QObject):
-    finalizar_descarga = pyqtSignal()
-    finalizar_descarga_fallida = pyqtSignal()
+    finalizar_descarga = pyqtSignal(str)
+    msj_descargar_cancion = pyqtSignal(str)
 
     def __init__(
             self, 
@@ -123,7 +123,7 @@ class WorkerDownload(QObject):
                             ).run()
                     else:
                         os.remove(archivo_mp4_ruta)
-                        self.finalizar_descarga_fallida.emit()
+                        self.msj_descargar_cancion.emit(f"DESCARGA FALLIDA: \nEl tiempo de inicio debe ser menor al tiempo final")
                         return
                         #return f"El tiempo de inicio debe ser menor al tiempo final"
                 elif self.check_tiempo_inicial.isChecked():
@@ -168,14 +168,16 @@ class WorkerDownload(QObject):
                 # self.borrar_url(self.input_url)
                 # self.borrar_metadatos()
                 # return (f"DESCARGA EXITOSA: \n{self.video_title}")
-                self.finalizar_descarga.emit()
+                self.finalizar_descarga.emit(f"DESCARGA EXITOSA: \n{self.video_title}")
                 return
             else:
-                self.mostrar_mensaje("No se encontró un archivo de audio disponible.")
+                self.msj_descargar_cancion.emit(f"No se encontró un archivo de audio disponible.")
+                return
+                # self.mostrar_mensaje("No se encontró un archivo de audio disponible.")
 
         except Exception as e:
-            print(f"Error al descargar: ", {str(e)})
-            # Descargar_Youtube_UI.mostrar_mensaje(f"Error al descargar: ", {str(e)})
+            self.msj_descargar_cancion.emit(f"Error al descargar:  {str(e)}")
+            # print(f"Error al descargar: ", {str(e)})
 
 class Descargar_Youtube_UI(QMainWindow):
     def __init__(self, ui_ppal):
@@ -352,20 +354,22 @@ class Descargar_Youtube_UI(QMainWindow):
             lambda: self.lbl_progreso.setText("")
         )
 
-    def download_finished(self):
+    def download_finished(self, message):
         # Método que se llama cuando la descarga ha finalizado
         # self.lbl_progreso.setText('')
         self.borrar_url(self.input_url)
         self.borrar_metadatos()
+        self.input_url.setFocus()
         # return (f"DESCARGA EXITOSA: \n{self.video_title}")
         self.parar_hilo_progreso()
-        self.mostrar_mensaje(f"DESCARGA EXITOSA: \n{self.video_title}")
+        self.mostrar_mensaje(message)
     
-    def download_finished_failed(self):
+    def descarga_cancion_falla(self, message):
         self.thread_descargar_cancion.quit()
         self.thread_descargar_cancion.wait()
+        self.worker_descargar_cancion.deleteLater()
         self.parar_hilo_progreso()
-        self.mostrar_mensaje(f"DESCARGA FALLIDA: \nEl tiempo de inicio debe ser menor al tiempo final")
+        self.mostrar_mensaje(message)
 
     def descargar_cancion_hilo(self):
         self.url_youtube = self.obtener_url()
@@ -400,9 +404,15 @@ class Descargar_Youtube_UI(QMainWindow):
                 self.worker_descargar_cancion.finalizar_descarga.connect(self.worker_descargar_cancion.deleteLater)
                 self.thread_descargar_cancion.finished.connect(self.thread_descargar_cancion.deleteLater)
                 self.worker_descargar_cancion.finalizar_descarga.connect(self.download_finished)
-                self.worker_descargar_cancion.finalizar_descarga_fallida.connect(self.download_finished_failed)
+                self.worker_descargar_cancion.msj_descargar_cancion.connect(self.descarga_cancion_falla)
                 # Step 6: Start the thread
                 self.thread_descargar_cancion.start()
+
+                # Crear un temporizador para verificar periódicamente si el hilo está vivo
+                # self.timer_hilo_vivodescargar_cancion = QTimer(self)
+                # self.timer_hilo_vivodescargar_cancion.timeout.connect(self.verificarHiloVivo)
+                # self.timer_hilo_vivodescargar_cancion.start(180000)
+                # self.timer_hilo_vivodescargar_cancion.start(1000)
 
                 # Final resets
                 self.btn_descargar.setEnabled(False)
@@ -415,6 +425,14 @@ class Descargar_Youtube_UI(QMainWindow):
         else:
             self.parar_hilo_progreso()
             self.mostrar_mensaje("La URL de YouTube no es válida.")
+
+    def verificarHiloVivo(self):
+        # Método que se ejecuta periódicamente para verificar si el hilo sigue vivo
+        try:
+            if self.thread_descargar_cancion.isRunning():
+                self.descarga_cancion_falla("Tiempo excesivo en la descarga, proceso finalizado.")
+        except:
+            self.timer_hilo_vivodescargar_cancion.stop()  
     
     def volver_function(self):
         print("Volver al menú principal")

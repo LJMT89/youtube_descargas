@@ -5,8 +5,9 @@ Metadatos:
 
 Validaciones:
 *   Que el campo de titulo de la cancion no se vaya vacio
-    Que si el tiempo final es menor al tiempo inicial lance un mensaje de alerta
+*   Que si el tiempo final es menor al tiempo inicial lance un mensaje de alerta
     Si ya hay una cancion con el mismo titulo q agregue un consecutivo o pregunte si desea reemplazar
+    Que si el tiempo es mayor a X lance una exepcion
 
 probar con la cancion:
 yo no le vendo mi fundo:
