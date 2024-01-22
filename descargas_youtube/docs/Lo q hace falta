@@ -7,8 +7,11 @@ Validaciones:
 *   Que el campo de titulo de la cancion no se vaya vacio
 *   Que si el tiempo final es menor al tiempo inicial lance un mensaje de alerta
     Que si NO hay una carpeta cualquiera abierta lance un mensaje indicando q abra una carpeta cualquiera
-    Si ya hay una cancion con el mismo titulo q agregue un consecutivo o pregunte si desea reemplazar
+*   Si ya hay una cancion con el mismo titulo q agregue un consecutivo o pregunte si desea reemplazar
     Si el tiempo es mucho (ej: mas de 5 minutos), que el proceso se cierre y muestre una alerta
+    Bloquear botones (atras, minimizar, salir, etc) cuando se este ejecutando el proceso de descargar una
+    cancion
+    Cerrar seguramente el programa (cerrar los hilos correctamente)
 
 probar con la cancion:
 yo no le vendo mi fundo:

@@ -6,8 +6,11 @@ Metadatos:
 Validaciones:
 *   Que el campo de titulo de la cancion no se vaya vacio
 *   Que si el tiempo final es menor al tiempo inicial lance un mensaje de alerta
-    Si ya hay una cancion con el mismo titulo q agregue un consecutivo o pregunte si desea reemplazar
+*   Si ya hay una cancion con el mismo titulo q agregue un consecutivo o pregunte si desea reemplazar
     Que si el tiempo es mayor a X lance una exepcion
+    Bloquear botones (atras, minimizar, salir, etc) cuando se este ejecutando el proceso de descargar una
+    cancion
+    Cerrar seguramente el programa (cerrar los hilos correctamente)
 
 probar con la cancion:
 yo no le vendo mi fundo:

@@ -189,12 +189,10 @@ class Descargar_Youtube_UI(QMainWindow):
         # Personalizar el marco de las ventanas para que solo muestre un título
         self.ui_descargar_youtube.setWindowFlags(Qt.Window | Qt.CustomizeWindowHint | Qt.WindowTitleHint)
 
-        self.worker_thread = None
-        self.process_thread = None
-
         self.current_folder = "/media/jose/90980D73980D58DC/PAPA/Música/Descargas de YouTube"
         #self.current_folder = "/media/libardo/567E18C87E18A333/IDEAFIX/DescargasYoutube/youtube_download"
         self.calidad_audio = "256k"
+        self.msg_error_titulo_cancion =""
 
         #Elementos ui de configuración
         self.lbl_temp_inicial_min = self.ui_descargar_youtube.lbl_cont_slider_temp_inicial_min
@@ -290,21 +288,6 @@ class Descargar_Youtube_UI(QMainWindow):
         self.compositor_metadata.clear()
         self.input_url.setFocus()
 
-    def eliminar_punto_final(self, cadena):
-        if cadena.endswith('.'):
-            cadena = cadena[:-1]
-        return cadena
-
-    def validar_titulo(self):
-        titulo = self.eliminar_punto_final(self.titulo_metadata.text())
-        return titulo
-
-    def validar_url_youtube(self, texto):
-        if texto.startswith("https://www.youtube.com/"):
-            return True
-        else:
-            return False
-
     def mostrar_mensaje(self, mensaje):
         msg_box = QMessageBox()
         msg_box.setWindowTitle('Mensaje')
@@ -312,17 +295,36 @@ class Descargar_Youtube_UI(QMainWindow):
         msg_box.setText(mensaje)
         msg_box.setStyleSheet('background-color: white;')
         msg_box.exec_()
-    
-    def closeEvent(self, event):
-        reply = QMessageBox.question(self, 'Cerrar Aplicación', '¿Seguro que quieres salir?',
-                                     QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
 
-        if reply == QMessageBox.Yes:
-            # Detener los hilos de manera segura antes de cerrar la aplicación
-            self.stop_threads()
-            event.accept()
+    def validar_url_youtube(self, texto):
+        if texto.startswith("https://www.youtube.com/"):
+            return True
         else:
-            event.ignore()
+            return False
+
+    # Funcion q elimina el posible punto final y los espacios al inicio y al final de un string
+    def eliminar_punto_final(self, cadena):
+        if cadena.endswith('.'):
+            cadena = cadena[:-1]
+        # Eliminar espacios iniciales y finales
+        titulo_cancion = cadena.strip()
+        return titulo_cancion
+
+    def validar_titulo(self):
+        titulo = self.eliminar_punto_final(self.titulo_metadata.text())
+        if titulo:
+            archivos = os.listdir(self.current_folder)
+            # Eliminar la extensión de cada archivo
+            titulos_canciones = [os.path.splitext(archivo)[0] for archivo in archivos]
+            # Verificar si el titulo de la cancion ya existe
+            if titulo in titulos_canciones:
+                self.msg_error_titulo_cancion = "El título ya existe, ingrese un nuevo título"
+                return False
+            else:
+                return titulo
+        else:
+            self.msg_error_titulo_cancion = "Agregue un título a la canción."
+            return False
     
     def ejecutar_hilos(self):
         self.barra_progreso_hilo()
@@ -421,7 +423,7 @@ class Descargar_Youtube_UI(QMainWindow):
                 )
             else:
                 self.parar_hilo_progreso()
-                self.mostrar_mensaje("Agregue un título a la canción.")
+                self.mostrar_mensaje(self.msg_error_titulo_cancion)
         else:
             self.parar_hilo_progreso()
             self.mostrar_mensaje("La URL de YouTube no es válida.")
