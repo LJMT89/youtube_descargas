@@ -32,9 +32,48 @@ class WorkerProgress(QObject):
 
 class WorkerConvertMp3(QObject):
     finalizar_conversion = pyqtSignal()
+    cancion_convertida = pyqtSignal(str)
 
-    def __init__(self):
+    def __init__(self, 
+                 archivos_wma, 
+                 carpeta_actual, 
+                 archivos,
+                 btn_convertir,
+                 calidad_audio,
+                 lbl_canciones_convertidas
+                 ):
         super().__init__()
+        self.archivos_wma = archivos_wma
+        self.carpeta_actual = carpeta_actual
+        self.archivos = archivos
+        self.btn_convertir = btn_convertir
+        self.calidad_audio = calidad_audio
+        self.lbl_canciones_convertidas = lbl_canciones_convertidas
+
+    def run(self):
+        canciones_convertidas_list = list()
+        for archivo_wma in self.archivos_wma:
+            try:
+                input_path = os.path.join(self.carpeta_actual, archivo_wma)
+                cancion_mp3 = os.path.splitext(archivo_wma)[0] + '.mp3'
+                output_path = os.path.join(self.carpeta_actual, cancion_mp3)
+                
+                if not cancion_mp3 in self.archivos:
+                    self.btn_convertir.setEnabled(False)
+                    ffmpeg.input(input_path).output(
+                        output_path,
+                        audio_bitrate=self.calidad_audio,
+                        codec='libmp3lame',
+                    ).run()
+                    canciones_convertidas_list.append(cancion_mp3)
+                    print(f"La conversión de {archivo_wma} a {os.path.splitext(archivo_wma)[0]}.mp3 se ha completado con éxito.")
+                else:
+                    # self.mostrar_mensaje(f"La canción {archivo_wma} ya está convertida en formato mp3.")
+                    self.cancion_convertida.emit(f"La canción {archivo_wma} ya está convertida en formato mp3.")
+            except ffmpeg.Error as e:
+                print(f"Error durante la conversión de {archivo_wma}: {e.stderr}")
+        self.lbl_canciones_convertidas.setText("\n".join(canciones_convertidas_list))
+        self.finalizar_conversion.emit()
 
 class ConvertidorWmaMp3UI(QMainWindow):
     def __init__(self, ui_ppal):
@@ -55,6 +94,7 @@ class ConvertidorWmaMp3UI(QMainWindow):
         self.btn_sel_carpeta = self.ui_conversor_mp3.btn_sel_carpeta
         self.btn_convertir = self.ui_conversor_mp3.btn_convertir
         self.lbl_canciones_seleccionadas = self.ui_conversor_mp3.lbl_canciones_seleccionadas
+        self.lbl_canciones_convertidas = self.ui_conversor_mp3.lbl_canciones_convertidas
 
         self.btn_volver = self.ui_conversor_mp3.btn_atras
         self.btn_minimizar = self.ui_conversor_mp3.btn_minimizar
@@ -62,7 +102,7 @@ class ConvertidorWmaMp3UI(QMainWindow):
 
         #Controladores ui de configuración
         self.btn_sel_carpeta.clicked.connect(self.seleccionar_carpeta)
-        self.btn_convertir.clicked.connect(self.convertir_wma_a_mp3_hilo)
+        self.btn_convertir.clicked.connect(self.ejecutar_hilos)
         self.btn_convertir.setEnabled(False)
 
         self.btn_volver.clicked.connect(self.volver_function)
@@ -91,7 +131,7 @@ class ConvertidorWmaMp3UI(QMainWindow):
         self.worker_progreso.finalizar_progreso.connect(self.thread_progreso.quit)
         self.worker_progreso.finalizar_progreso.connect(self.worker_progreso.deleteLater)
         self.thread_progreso.finished.connect(self.thread_progreso.deleteLater)
-        self.worker_progreso.update_signal.connect(self.update_status_label)
+        self.worker_progreso.actualizar_progreso.connect(self.update_status_label)
         # Step 6: Start the thread
         self.thread_progreso.start()
 
@@ -114,28 +154,37 @@ class ConvertidorWmaMp3UI(QMainWindow):
             self.btn_convertir.setEnabled(False)
             self.mostrar_mensaje("No hay archivos seleccionados")
 
+    def conversion_finalizada(self):
+        self.parar_hilo_progreso()
+
+    def cancion_convertida_func(self, message):
+        self.mostrar_mensaje(message)
+
     def convertir_wma_a_mp3_hilo(self):
-        canciones_convertidas_list = list()
-        for archivo_wma in self.archivos_wma:
-            try:
-                input_path = os.path.join(self.carpeta_actual, archivo_wma)
-                cancion_mp3 = os.path.splitext(archivo_wma)[0] + '.mp3'
-                output_path = os.path.join(self.carpeta_actual, cancion_mp3)
-                
-                if not cancion_mp3 in self.archivos:
-                    self.btn_convertir.setEnabled(False)
-                    ffmpeg.input(input_path).output(
-                        output_path,
-                        audio_bitrate=self.calidad_audio,
-                        codec='libmp3lame',
-                    ).run()
-                    canciones_convertidas_list.append(cancion_mp3)
-                    print(f"La conversión de {archivo_wma} a {os.path.splitext(archivo_wma)[0]}.mp3 se ha completado con éxito.")
-                else:
-                    self.mostrar_mensaje(f"La canción {archivo_wma} ya está convertida en formato mp3.")
-            except ffmpeg.Error as e:
-                print(f"Error durante la conversión de {archivo_wma}: {e.stderr}")
-        self.lbl_canciones_convertidas.setText("\n".join(canciones_convertidas_list))
+        self.thread_convertir_cancion = QThread()
+        self.worker_convertir_cancion = WorkerConvertMp3(
+            self.archivos_wma, 
+            self.carpeta_actual, 
+            self.archivos,
+            self.btn_convertir,
+            self.calidad_audio,
+            self.lbl_canciones_convertidas
+            )
+        self.worker_convertir_cancion.moveToThread(self.thread_convertir_cancion)
+        # Step 5: Connect signals and slots
+        self.thread_convertir_cancion.started.connect(self.worker_convertir_cancion.run)
+        self.worker_convertir_cancion.finalizar_conversion.connect(self.thread_convertir_cancion.quit)
+        self.worker_convertir_cancion.finalizar_conversion.connect(self.worker_convertir_cancion.deleteLater)
+        self.thread_convertir_cancion.finished.connect(self.thread_convertir_cancion.deleteLater)
+        self.worker_convertir_cancion.finalizar_conversion.connect(self.conversion_finalizada)
+        self.worker_convertir_cancion.cancion_convertida.connect(self.cancion_convertida_func)
+        # Step 6: Start the thread
+        self.thread_convertir_cancion.start()
+        # Final resets
+        self.btn_sel_carpeta.setEnabled(False)
+        self.thread_convertir_cancion.finished.connect(
+            lambda: self.btn_sel_carpeta.setEnabled(True)
+        )
 
     def mostrar_mensaje(self, mensaje):
         msg_box = QMessageBox()
