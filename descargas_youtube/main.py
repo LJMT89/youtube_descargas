@@ -2,10 +2,10 @@ import sys, os
 
 from PyQt5 import uic
 from PyQt5.QtWidgets import QApplication, QDesktopWidget, QMainWindow
-from PyQt5.QtCore import QThread, pyqtSignal, Qt
+from PyQt5.QtCore import Qt
 
-from src.descargar_youtube import Descargar_Youtube_UI
-from src.conversor_mp3 import Conversor_mp3_UI
+from src.descargar_youtube import DescargarYoutubeUI
+from src.conversor_mp3 import ConvertidorWmaMp3UI
 
 basedir = os.path.dirname(__file__)
 
@@ -14,8 +14,8 @@ class Iniciar_UI(QMainWindow):
 		super().__init__()
 		# UI Qt Designer
 		self.ui_ppal = uic.loadUi(os.path.join(basedir, "ui", "principal.ui"), self)
-		self.ui_descargar_youtube = Descargar_Youtube_UI(self.ui_ppal)
-		self.ui_conversor_mp3 = Conversor_mp3_UI(self.ui_ppal)
+		self.ui_descargar_youtube = DescargarYoutubeUI(self.ui_ppal)
+		self.ui_conversor_mp3 = ConvertidorWmaMp3UI(self.ui_ppal)
 
 		# Personalizar el marco de las ventanas para que solo muestre un título
 		self.ui_ppal.setWindowFlags(Qt.Window | Qt.CustomizeWindowHint | Qt.WindowTitleHint)

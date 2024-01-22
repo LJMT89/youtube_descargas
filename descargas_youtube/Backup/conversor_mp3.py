@@ -5,30 +5,33 @@ import os
 
 class ConvertidorWmaMp3:
     def __init__(self):
-        self.archivo_wma_ruta = None
+        self.carpeta_actual = None
         self.calidad_audio = '256k'
 
     def seleccionar_carpeta(self):
         carpeta_seleccionada = QFileDialog.getExistingDirectory(None, "Seleccionar carpeta", "/media/jose/90980D73980D58DC/PAPA/Música")
         if carpeta_seleccionada:
-            self.archivo_wma_ruta = carpeta_seleccionada
+            self.carpeta_actual = carpeta_seleccionada
             self.convertir_wma_a_mp3()
 
     def convertir_wma_a_mp3(self):
-        if self.archivo_wma_ruta:
-            archivos_wma = [f for f in os.listdir(self.archivo_wma_ruta) if f.lower().endswith('.wma')]
+        if self.carpeta_actual:
+            archivos = os.listdir(self.carpeta_actual)
+            archivos_wma = [f for f in os.listdir(self.carpeta_actual) if f.lower().endswith('.wma')]
             for archivo_wma in archivos_wma:
                 try:
-                    input_path = os.path.join(self.archivo_wma_ruta, archivo_wma)
-                    output_path = os.path.join(self.archivo_wma_ruta, os.path.splitext(archivo_wma)[0] + '.mp3')
-
-                    ffmpeg.input(input_path).output(
-                        output_path,
-                        audio_bitrate=self.calidad_audio,
-                        codec='libmp3lame',
-                    ).run()
+                    input_path = os.path.join(self.carpeta_actual, archivo_wma)
+                    cancion_mp3 = os.path.splitext(archivo_wma)[0] + '.mp3'
+                    output_path = os.path.join(self.carpeta_actual, cancion_mp3)
                     
-                    print(f"La conversión de {archivo_wma} a {os.path.splitext(archivo_wma)[0]}.mp3 se ha completado con éxito.")
+                    if not cancion_mp3 in archivos:
+                        ffmpeg.input(input_path).output(
+                            output_path,
+                            audio_bitrate=self.calidad_audio,
+                            codec='libmp3lame',
+                        ).run()
+                        print(f"La conversión de {archivo_wma} a {os.path.splitext(archivo_wma)[0]}.mp3 se ha completado con éxito.")
+                        
                 except ffmpeg.Error as e:
                     print(f"Error durante la conversión de {archivo_wma}: {e.stderr}")
 

@@ -1,10 +1,8 @@
-import sys, os
+import os, time, ffmpeg
 from PyQt5 import uic
 from PyQt5.QtWidgets import QMainWindow, QMessageBox, QApplication
 from PyQt5.QtCore import Qt, QThread, pyqtSignal, QObject, QTimer
 from pytube import YouTube
-import ffmpeg
-import time
 
 basedir = os.path.dirname(__file__)
 
@@ -179,7 +177,7 @@ class WorkerDownload(QObject):
             self.msj_descargar_cancion.emit(f"Error al descargar:  {str(e)}")
             # print(f"Error al descargar: ", {str(e)})
 
-class Descargar_Youtube_UI(QMainWindow):
+class DescargarYoutubeUI(QMainWindow):
     def __init__(self, ui_ppal):
         super().__init__()
         # UI Qt Designer
